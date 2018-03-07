@@ -1,0 +1,5 @@
+.git
+deps
+_build
+Dockerfile
+.dockerignore
