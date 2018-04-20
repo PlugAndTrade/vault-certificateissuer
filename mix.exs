@@ -4,7 +4,7 @@ defmodule VaultCertificateIssuer.Mixfile do
   def project do
     [
       app: :vault_certificate_issuer,
-      version: "0.1.0",
+      version: "0.2.0",
       elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
       deps: deps()
@@ -17,6 +17,7 @@ defmodule VaultCertificateIssuer.Mixfile do
       applications: [
         :afunix,
         :httpoison,
+        :jose,
         :poison,
         :timex
       ],
@@ -30,6 +31,7 @@ defmodule VaultCertificateIssuer.Mixfile do
     [
       {:distillery, "~> 1.5", runtime: false},
       {:httpoison, "~> 1.0"},
+      {:jose, "~> 1.8"},
       {:poison, "~> 3.1"},
       {:timex, "~> 3.1"},
       {:afunix,  github: "tonyrog/afunix", manager: :rebar}

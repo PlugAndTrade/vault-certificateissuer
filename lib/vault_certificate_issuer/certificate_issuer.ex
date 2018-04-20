@@ -66,10 +66,24 @@ defmodule VaultCertificateIssuer.CertificateIssuer do
   end
 
   defp send_certificates(dest, key, cert, chain) do
-    IO.puts("-----BEGIN RSA PRIVATE KEY-----\n[redacted]\n-----END RSA PRIVATE KEY-----\n")
-    IO.puts(cert)
-    IO.puts(chain)
-    Process.send_after(dest, {:write, to_charlist("#{key}\n#{cert}\n#{chain}\n")}, 0)
+    jwk = key
+      |> JOSE.JWK.from_pem()
+      |> JOSE.JWK.to_map()
+      |> (fn {_, jwk} -> jwk end).()
+      |> Map.merge(%{"x5c" => get_x5c(cert, chain), "alg" => "RS256"})
+
+    IO.inspect(jwk)
+    #IO.puts("-----BEGIN RSA PRIVATE KEY-----\n[redacted]\n-----END RSA PRIVATE KEY-----\n")
+    #IO.puts(cert)
+    #IO.puts(chain)
+    Process.send_after(dest, {:write, "#{Poison.encode!(jwk)}\n"}, 0)
+  end
+
+  defp get_x5c(cert, chain) do
+    "#{cert}#{chain}"
+      |> String.replace("\n", "")
+      |> (&Regex.scan(~r/-----BEGIN CERTIFICATE-----(.+?)-----END CERTIFICATE-----/, &1)).()
+      |> Enum.map(fn [_, b64] -> b64 end)
   end
 
   defp post(url, json, token) do

@@ -15,11 +15,11 @@ defmodule VaultCertificateIssuer do
     common_name = System.get_env("COMMON_NAME")
     {ttl, _} = Integer.parse(System.get_env("TTL") || "60")
     {expire_margin, _} = Integer.parse(System.get_env("EXPIRE_MARGIN") || "60")
-    {min_reissue_time, _} = Integer.parse(System.get_env("MIN_REISSUE_Time") || "60")
+    {min_reissue_time, _} = Integer.parse(System.get_env("MIN_REISSUE_TIME") || "60")
     {retry_interval, _} = Integer.parse(System.get_env("RETRY_INTERVAl") || "20")
 
     children = [
-      worker(AFUnix.Test, [[
+      worker(VaultCertificateIssuer.AFUnix, [[
         path: socket_path,
         timeout: socket_timeout,
         name: :socket

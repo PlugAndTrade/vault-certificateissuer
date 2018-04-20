@@ -29,3 +29,5 @@ Available arguments:
  * `MIN_REISSUE_TIME` Wait at leat `MIN_REISSUE_TIME` seconds between issue requests, default: `60`.
  * `RETRY_INTERVAl` Interval, in seconds, between retries if Vault is inaccessible or failed to issue certificate, default: `20`.
  * `SOCKET_TIMEOUT` Interval, in milliseconds, between connection attempts to the unix domain socket, default `1000`.
+
+The service will wait for a socket at `/tmp/cert/certs.sock`.

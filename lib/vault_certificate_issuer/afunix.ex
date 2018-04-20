@@ -1,4 +1,4 @@
-defmodule AFUnix.Test do
+defmodule VaultCertificateIssuer.AFUnix do
   use GenServer
 
   def start_link(opts) do
