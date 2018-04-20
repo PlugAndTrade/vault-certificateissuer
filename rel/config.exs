@@ -45,7 +45,7 @@ end
 # will be used by default
 
 release :vault_certificate_issuer do
-  set version: current_version(:vault_certificate_issuer)
+  set version: "latest"
   set applications: [
     :runtime_tools
   ]

@@ -27,7 +27,7 @@ RUN apk add --no-cache bash ncurses-libs libcrypto1.0
 RUN mkdir -p /vault_certificate_issuer /tmp
 WORKDIR /vault_certificate_issuer
 
-COPY --from=0 /src/vault_certificate_issuer/_build/prod/rel/vault_certificate_issuer/releases/0.1.0/vault_certificate_issuer.tar.gz /tmp/
+COPY --from=0 /src/vault_certificate_issuer/_build/prod/rel/vault_certificate_issuer/releases/latest/vault_certificate_issuer.tar.gz /tmp/
 RUN tar xvzf /tmp/vault_certificate_issuer.tar.gz
 RUN rm -f /tmp/vault_certificate_issuer.tar.gz
 
