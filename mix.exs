@@ -4,7 +4,7 @@ defmodule VaultCertificateIssuer.Mixfile do
   def project do
     [
       app: :vault_certificate_issuer,
-      version: "0.3.0",
+      version: "0.3.1",
       elixir: "~> 1.5",
       start_permanent: Mix.env == :prod,
       deps: deps()
@@ -19,7 +19,8 @@ defmodule VaultCertificateIssuer.Mixfile do
         :httpoison,
         :jose,
         :poison,
-        :timex
+        :timex,
+        :vault_client,
       ],
       extra_applications: [:logger],
       mod: {VaultCertificateIssuer, []}
