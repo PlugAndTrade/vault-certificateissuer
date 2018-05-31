@@ -1,27 +1,34 @@
 defmodule VaultCertificateIssuer.CertificateIssuer do
   use GenServer
+  require Logger
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, opts)
   end
 
   def init(opts) do
-    vault_url = Keyword.get(opts, :vault_url, "http://localhost:8200/v1/")
-    vault_issue_path = Keyword.get(opts, :vault_issue_path)
-    common_name = Keyword.get(opts, :common_name)
-    ttl = Keyword.get(opts, :ttl)
-    token = Keyword.get(opts, :token)
     dest = Keyword.get(opts, :dest)
+    vault = Keyword.fetch!(opts, :vault)
+    pki_path = Keyword.fetch!(opts, :pki_path)
+    pki_role = Keyword.fetch!(opts, :pki_role)
+
     expire_margin = Keyword.get(opts, :expire_margin, 60)
     min_reissue_time = Keyword.get(opts, :min_reissue_time, 60)
     retry_interval = Keyword.get(opts, :retry_interval, 20)
+
+    common_name = Keyword.fetch!(opts, :common_name)
+    issue_opts = opts
+                 |> Keyword.take([:ttl])
+                 |> Enum.into(%{})
+                 |> Map.merge(%{common_name: common_name})
+
     send(self(), :issue_new)
+
     {:ok, %{
-      vault_url: vault_url,
-      vault_issue_path: vault_issue_path,
-      common_name: common_name,
-      ttl: ttl,
-      token: token,
+      vault: vault,
+      pki_path: pki_path,
+      pki_role: pki_role,
+      issue_opts: issue_opts,
       dest: dest,
       expire_margin: expire_margin,
       min_reissue_time: min_reissue_time,
@@ -37,30 +44,29 @@ defmodule VaultCertificateIssuer.CertificateIssuer do
     retry_interval: retry_interval,
     dest: dest
   } = state) do
-    wait_time = with {:ok, %{key: key, certificate: cert, chain: chain, expires_at: expires_at}} <- get_certificates(state) do
-      send_certificates(dest, key, cert, chain)
+    wait_time =
+      case get_certificates(state) do
+        {:ok, %{key: key, certificate: cert, chain: chain, expires_at: expires_at}} ->
+          send_certificates(dest, key, cert, chain)
+          valid_duration = Timex.diff(expires_at, Timex.now(), :seconds)
+          max(min_reissue_time, (valid_duration - expire_margin))
+        err ->
+          Logger.error("Issue certificate error: #{inspect err}")
+          retry_interval
+      end
 
-      valid_duration = Timex.diff(expires_at, Timex.now(), :seconds)
-      max(min_reissue_time, (valid_duration - expire_margin))
-    else
-      {:not_ok, body} -> IO.inspect(body)
-        retry_interval
-      {:error, error} -> IO.inspect(error)
-        retry_interval
-    end
-    IO.puts("Next run in: #{wait_time}s")
+    Logger.info("Issue new certificate in: #{wait_time}s")
     Process.send_after(self(), :issue_new, wait_time * 1000)
+
     {:noreply, state}
   end
 
-  defp get_certificates(%{vault_url: url, vault_issue_path: vault_issue_path, common_name: common_name, ttl: ttl, token: token}) do
-    with {:ok, %{"data" => %{"private_key" => key, "certificate" => cert} = data}} <- post("#{url}#{vault_issue_path}", %{common_name: common_name, ttl: ttl}, token)
-    do
-      chain = Map.get(data, "ca_chain", Map.get(data, "issuing_ca"))
-
-      [%{valid_to: valid_to}] = parse_pem_string(cert)
-      {:ok, %{key: key, certificate: cert, chain: chain, expires_at: valid_to}}
-    else
+  defp get_certificates(%{vault: vault, pki_path: path, pki_role: role, issue_opts: issue_opts}) do
+    case Vault.Http.post(vault, "/#{path}/issue/#{role}", issue_opts) do
+      {:ok, %{"data" => %{"private_key" => key, "certificate" => cert} = data}} ->
+        chain = Map.get(data, "ca_chain", Map.get(data, "issuing_ca"))
+        [%{valid_to: valid_to}] = parse_pem_string(cert)
+        {:ok, %{key: key, certificate: cert, chain: chain, expires_at: valid_to}}
       e -> e
     end
   end
@@ -72,10 +78,6 @@ defmodule VaultCertificateIssuer.CertificateIssuer do
       |> (fn {_, jwk} -> jwk end).()
       |> Map.merge(%{"x5c" => get_x5c(cert, chain), "alg" => "RS256"})
 
-    IO.inspect(jwk)
-    #IO.puts("-----BEGIN RSA PRIVATE KEY-----\n[redacted]\n-----END RSA PRIVATE KEY-----\n")
-    #IO.puts(cert)
-    #IO.puts(chain)
     Process.send_after(dest, {:write, "#{Poison.encode!(jwk)}\n"}, 0)
   end
 
@@ -85,15 +87,6 @@ defmodule VaultCertificateIssuer.CertificateIssuer do
       |> (&Regex.scan(~r/-----BEGIN CERTIFICATE-----(.+?)-----END CERTIFICATE-----/, &1)).()
       |> Enum.map(fn [_, b64] -> b64 end)
   end
-
-  defp post(url, json, token) do
-    HTTPoison.request(:post, url, Poison.encode!(json), [{"X-Vault-Token", token}])
-      |> parse_response()
-  end
-  defp parse_response({:ok, %HTTPoison.Response{body: json, status_code: 200}}), do: {:ok, Poison.decode!(json)}
-  defp parse_response({:ok, %HTTPoison.Response{body: ""}}), do: {:not_ok, %{}}
-  defp parse_response({:ok, %HTTPoison.Response{body: json}}), do: {:not_ok, Poison.decode!(json)}
-  defp parse_response({_, response}), do: {:error, response}
 
   defp parse_pem_string(pem_string) do
     pem_string
