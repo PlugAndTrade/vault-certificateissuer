@@ -20,11 +20,12 @@ Issues and reissues centrificates from Vault and sends them on a unix domain soc
 
 Available arguments:
 
- * `VAULT_URL` URL to Vault, default: `http://vault:8200/v1/`.
- * `VAULT_ISSUE_PATH` Path to the issue endpoint in Vault, eg. `pki/issue/my_role`, required.
+ * `VAULT_URL` URL to Vault, default: `http://vault:8200`.
+ * `VAULT_PKI_PATH` Path of the pki module in Vault, eg. `pki`, required.
+ * `VAULT_PKI_ROLE` Name of the pki role, eg. `my_certi`, required.
  * `VAULT_TOKEN` Vault token valid for issuing certificates, required.
  * `COMMON_NAME` The CN of the issued certificates, required.
- * `TTL` The TTL of the issued certificates, default: `60`.
+ * `TTL` The TTL of the issued certificates. `0` indicates using the configured value of the role. Default: `0`.
  * `EXPIRE_MARGIN` Reissue certificates `EXPIRE_MARGIN` seconds prior to certificate expiration, default: `60`.
  * `MIN_REISSUE_TIME` Wait at leat `MIN_REISSUE_TIME` seconds between issue requests, default: `60`.
  * `RETRY_INTERVAl` Interval, in seconds, between retries if Vault is inaccessible or failed to issue certificate, default: `20`.
