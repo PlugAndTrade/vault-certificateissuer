@@ -22,7 +22,7 @@ RUN MIX_ENV=prod mix release --env=prod
 
 FROM alpine
 
-RUN apk add --no-cache bash ncurses-libs libcrypto1.0
+RUN apk add --no-cache bash ncurses-libs libcrypto1.0 tzdata
 
 RUN mkdir -p /vault_certificate_issuer /tmp
 WORKDIR /vault_certificate_issuer
