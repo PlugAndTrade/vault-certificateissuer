@@ -4,8 +4,8 @@ defmodule VaultCertificateIssuer.Mixfile do
   def project do
     [
       app: :vault_certificate_issuer,
-      version: "0.3.3",
-      elixir: "~> 1.5",
+      version: "0.3.4",
+      elixir: "~> 1.8.1",
       start_permanent: Mix.env == :prod,
       deps: deps()
     ]
@@ -30,8 +30,8 @@ defmodule VaultCertificateIssuer.Mixfile do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:distillery, "~> 1.5", runtime: false},
-      {:httpoison, "~> 1.0"},
+      {:distillery, "~> 2.0", runtime: false},
+      {:httpoison, "~> 1.3"},
       {:jose, "~> 1.8"},
       {:poison, "~> 3.1"},
       {:timex, "~> 3.1"},

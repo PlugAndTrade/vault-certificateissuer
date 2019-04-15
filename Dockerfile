@@ -1,4 +1,4 @@
-FROM elixir:1.6-alpine
+FROM elixir:1.8.1-alpine
 
 RUN apk add --no-cache \
     curl \
@@ -20,9 +20,9 @@ ADD . /src/vault_certificate_issuer/
 RUN MIX_ENV=prod mix compile --env=prod
 RUN MIX_ENV=prod mix release --env=prod
 
-FROM alpine
+FROM alpine:3.9
 
-RUN apk add --no-cache bash ncurses-libs libcrypto1.0 tzdata
+RUN apk add --no-cache bash ncurses-libs libcrypto1.1 tzdata
 
 RUN mkdir -p /vault_certificate_issuer /tmp
 WORKDIR /vault_certificate_issuer
