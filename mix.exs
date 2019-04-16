@@ -5,7 +5,7 @@ defmodule VaultCertificateIssuer.Mixfile do
     [
       app: :vault_certificate_issuer,
       version: "0.3.4",
-      elixir: "~> 1.8.1",
+      elixir: "~> 1.6.5",
       start_permanent: Mix.env == :prod,
       deps: deps()
     ]
