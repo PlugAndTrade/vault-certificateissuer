@@ -35,7 +35,7 @@ defmodule VaultCertificateIssuer do
         timeout: socket_timeout,
         name: :socket
       ]]),
-      worker(VaultCertificateIssuer.CertificateIssuer, [[
+      worker(Vault.Pki.CertificateIssuer, [[
         vault: vault,
         pki_path: vault_pki_path,
         pki_role: vault_pki_role,

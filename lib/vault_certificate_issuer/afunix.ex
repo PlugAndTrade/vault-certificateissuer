@@ -40,7 +40,7 @@ defmodule VaultCertificateIssuer.AFUnix do
   def handle_info(:write, %{last_message: nil} = state), do: {:noreply, state}
   def handle_info(:write, %{connected: false} = state), do: {:noreply, state}
   def handle_info(:write, %{socket: socket, connected: true, last_message: data} = state) do
-    :afunix.send(socket, to_charlist(data))
+    :afunix.send(socket, to_charlist("#{Poison.encode!(data)}\n"))
     {:noreply, state}
   end
   def handle_info({:write, data}, %{connected: false} = state) do
