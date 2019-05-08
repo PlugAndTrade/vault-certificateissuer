@@ -4,7 +4,7 @@ defmodule VaultCertificateIssuer.Mixfile do
   def project do
     [
       app: :vault_certificate_issuer,
-      version: "0.3.6",
+      version: "0.3.7",
       elixir: "~> 1.6.5",
       start_permanent: Mix.env == :prod,
       deps: deps()
@@ -36,7 +36,7 @@ defmodule VaultCertificateIssuer.Mixfile do
       {:poison, "~> 3.1"},
       {:timex, "~> 3.5"},
       {:afunix,  github: "tonyrog/afunix", manager: :rebar},
-      {:vault_client, github: "PlugAndTrade/vault-client-elixir", tag: "0.2.0" },
+      {:vault_client, github: "PlugAndTrade/vault-client-elixir", tag: "0.3.0" },
     ]
   end
 end

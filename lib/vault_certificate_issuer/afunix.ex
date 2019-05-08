@@ -40,14 +40,32 @@ defmodule VaultCertificateIssuer.AFUnix do
   def handle_info(:write, %{last_message: nil} = state), do: {:noreply, state}
   def handle_info(:write, %{connected: false} = state), do: {:noreply, state}
   def handle_info(:write, %{socket: socket, connected: true, last_message: data} = state) do
-    :afunix.send(socket, to_charlist("#{Poison.encode!(data)}\n"))
+    :afunix.send(socket, serialize(data))
     {:noreply, state}
   end
   def handle_info({:write, data}, %{connected: false} = state) do
     {:noreply, %{state | last_message: data}}
   end
   def handle_info({:write, data}, %{socket: socket, connected: true} = state) do
-    :afunix.send(socket, to_charlist(data))
+    :afunix.send(socket, serialize(data))
     {:noreply, %{state | last_message: data}}
+  end
+
+  defp serialize(%Vault.Pki.CertificateSet{private_key: key, certificate: certificate, chain: chain}) do
+    key
+      |> JOSE.JWK.from_pem()
+      |> JOSE.JWK.to_map()
+      |> (fn {_, jwk} -> jwk end).()
+      |> Map.merge(%{"x5c" => get_x5c(certificate, chain), "alg" => "RS256"})
+      |> Poison.encode!()
+      |> Kernel.<>("\n")
+      |> to_charlist()
+  end
+
+  defp get_x5c(cert, chain) do
+    "#{cert}#{chain}"
+      |> String.replace("\n", "")
+      |> (&Regex.scan(~r/-----BEGIN CERTIFICATE-----(.+?)-----END CERTIFICATE-----/, &1)).()
+      |> Enum.map(fn [_, b64] -> b64 end)
   end
 end
