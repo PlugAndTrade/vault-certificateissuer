@@ -14,14 +14,25 @@ mix run --no-halt
 ```
 
 Replace `EFs905ao/zCpuPvLoJlv3UhBejuQ+0HSi25nqlZv0ek=` with the sha256 fingerprint of your vault https certificate. See
-below for more info.
+below for more info. The certificate and its fingerprints are available with the following command.
+
+```
+docker run --rm \
+  --volumes-from vault-tls \
+  -e CERT_PATH=/var/tls \
+  -e COMMON_NAME=vault \
+  -e SUBJECT='/C=SE/O=Dev' \
+  -e VALID_DAYS=365 \
+  pntregistry.azurecr.io/certificate-generator:1.0.0
+```
+
 
 ### Setup dev vault
 
 ```
-mkdir -p ./tmp/vault/tls/
-docker run --rm -it --user $(id -u) \
-  -v "$PWD/tmp/vault/tls/":/var/tls \
+docker run \
+  --name vault-tls \
+  -v /var/tls \
   -e CERT_PATH=/var/tls \
   -e COMMON_NAME=vault \
   -e SUBJECT='/C=SE/O=Dev' \
@@ -30,28 +41,41 @@ docker run --rm -it --user $(id -u) \
 ```
 
 Save the b64 fingerprint from the output, this is required when running ths application.
+It can be aquired at any point with:
+
+```
+docker run --rm \
+  --volumes-from vault-tls \
+  -e CERT_PATH=/var/tls \
+  -e COMMON_NAME=vault \
+  -e SUBJECT='/C=SE/O=Dev' \
+  -e VALID_DAYS=365 \
+  pntregistry.azurecr.io/certificate-generator:1.0.0
+```
 
 ```
 docker run -it --rm \
+  --name=vault \
   --cap-add=IPC_LOCK \
   -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' \
   -p 8200:8201 \
-  -v "$PWD/tmp/vault/tls:/var/ssl"
-  -e 'VAULT_LOCAL_CONFIG={"listener":[{"tcp":{"address":"0.0.0.0:8201","tls_cert_file":"/var/ssl/vault.crt","tls_key_file": "/var/ssl/vault.key"}}]}' \
-  --name=vault \
+  --volumes-from vault-tls \
+  -e 'VAULT_LOCAL_CONFIG={"listener":[{"tcp":{"address":"0.0.0.0:8201","tls_cert_file":"/var/tls/vault.crt","tls_key_file": "/var/tls/vault.key"}}]}' \
   vault
 ```
+
+### Bootstrap vault pki module
 
 ```
 docker run --rm -a stdout -a stderr \
   --name vault-bootstrap \
   --link vault:vault \
-  -v "$PWD/tmp/vault/tls/vault.crt":/vault_bootstrap/vault.crt \
+  --volumes-from vault-tls \
   -v "$PWD/priv/vault/bootstrap.json":/vault_bootstrap/bootstrap.json \
   plugandtrade/vault-bootstrap:0.2.2 \
   bootstrap \
   --host https://vault:8201 \
-  --capath /vault_bootstrap/vault.crt \
+  --capath /var/tls/vault.crt \
   --config /vault_bootstrap/bootstrap.json \
   --token myroot
 ```
