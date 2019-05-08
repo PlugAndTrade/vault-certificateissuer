@@ -4,7 +4,57 @@ Issues and reissues centrificates from Vault and sends them on a unix domain soc
 
 ## Run
 
-`mix run --no-halt`
+```
+VAULT_CA_SHA256='EFs905ao/zCpuPvLoJlv3UhBejuQ+0HSi25nqlZv0ek=' \
+VAULT_PKI_PATH=test_int_ca \
+VAULT_PKI_ROLE=short_service \
+VAULT_TOKEN=myroot \
+COMMON_NAME=short_service \
+mix run --no-halt
+```
+
+Replace `EFs905ao/zCpuPvLoJlv3UhBejuQ+0HSi25nqlZv0ek=` with the sha256 fingerprint of your vault https certificate. See
+below for more info.
+
+### Setup dev vault
+
+```
+mkdir -p ./tmp/vault/tls/
+docker run --rm -it --user $(id -u) \
+  -v "$PWD/tmp/vault/tls/":/var/tls \
+  -e CERT_PATH=/var/tls \
+  -e COMMON_NAME=vault \
+  -e SUBJECT='/C=SE/O=Dev' \
+  -e VALID_DAYS=365 \
+  pntregistry.azurecr.io/certificate-generator:1.0.0
+```
+
+Save the b64 fingerprint from the output, this is required when running ths application.
+
+```
+docker run -it --rm \
+  --cap-add=IPC_LOCK \
+  -e 'VAULT_DEV_ROOT_TOKEN_ID=myroot' \
+  -p 8200:8201 \
+  -v "$PWD/tmp/vault/tls:/var/ssl"
+  -e 'VAULT_LOCAL_CONFIG={"listener":[{"tcp":{"address":"0.0.0.0:8201","tls_cert_file":"/var/ssl/vault.crt","tls_key_file": "/var/ssl/vault.key"}}]}' \
+  --name=vault \
+  vault
+```
+
+```
+docker run --rm -a stdout -a stderr \
+  --name vault-bootstrap \
+  --link vault:vault \
+  -v "$PWD/tmp/vault/tls/vault.crt":/vault_bootstrap/vault.crt \
+  -v "$PWD/priv/vault/bootstrap.json":/vault_bootstrap/bootstrap.json \
+  plugandtrade/vault-bootstrap:0.2.2 \
+  bootstrap \
+  --host https://vault:8201 \
+  --capath /vault_bootstrap/vault.crt \
+  --config /vault_bootstrap/bootstrap.json \
+  --token myroot
+```
 
 ## Release
 
@@ -21,6 +71,7 @@ Issues and reissues centrificates from Vault and sends them on a unix domain soc
 Available arguments:
 
  * `VAULT_URL` URL to Vault, default: `http://vault:8200`.
+ * `VAULT_CA_SHA256` Base64 encoded sha256 fingerprint of vault https certificate, eg `EFs905ao/zCpuPvLoJlv3UhBejuQ+0HSi25nqlZv0ek=`, required.
  * `VAULT_PKI_PATH` Path of the pki module in Vault, eg. `pki`, required.
  * `VAULT_PKI_ROLE` Name of the pki role, eg. `my_certi`, required.
  * `VAULT_TOKEN` Vault token valid for issuing certificates, required.

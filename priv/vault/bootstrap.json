@@ -1,0 +1,42 @@
+{
+  "policies": [],
+  "modules": [
+    {
+      "type": "pki",
+      "path": "test_ca",
+      "pki_proxy_url": "http://localhost:8201",
+      "config": {
+        "max_lease_ttl": "87600h"
+      },
+      "ca": {
+        "common_name": "Test CA",
+        "ttl": "87600h"
+      },
+      "intermediates": [
+        {
+          "path": "test_int_ca",
+          "pki_proxy_url": "http://localhost:8201",
+          "config": {
+            "max_lease_ttl": "8760h"
+          },
+          "ca": {
+            "common_name": "Test intermediate CA",
+            "ttl": "8760h"
+          },
+          "roles": [
+            {
+              "name": "long_service",
+              "ttl": "336h",
+              "common_name": "long_service"
+            },
+            {
+              "name": "short_service",
+              "ttl": "5m",
+              "common_name": "short_service"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
