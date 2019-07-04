@@ -35,7 +35,7 @@ defmodule VaultCertificateIssuer.Mixfile do
       {:timex, "~> 3.5"},
       {:afunix,  github: "tonyrog/afunix", manager: :rebar},
       {:vault_client, github: "PlugAndTrade/vault-client-elixir", tag: "0.3.0" },
-      {:x509, github: "PlugAndTrade/elixir-x509", tag: "0.3.1"}
+      {:x509, github: "PlugAndTrade/elixir-x509", tag: "0.3.2"}
     ]
   end
 end
