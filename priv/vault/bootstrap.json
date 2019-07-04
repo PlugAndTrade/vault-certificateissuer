@@ -9,7 +9,7 @@
         "max_lease_ttl": "87600h"
       },
       "ca": {
-        "common_name": "Test CA",
+        "common_name": "test_ca",
         "ttl": "87600h"
       },
       "intermediates": [
@@ -20,7 +20,7 @@
             "max_lease_ttl": "8760h"
           },
           "ca": {
-            "common_name": "Test intermediate CA",
+            "common_name": "test_int_ca",
             "ttl": "8760h"
           },
           "roles": [
