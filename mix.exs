@@ -17,7 +17,6 @@ defmodule VaultCertificateIssuer.Mixfile do
       applications: [
         :afunix,
         :httpoison,
-        :jose,
         :poison,
         :timex,
         :vault_client,
@@ -32,11 +31,11 @@ defmodule VaultCertificateIssuer.Mixfile do
     [
       {:distillery, "~> 2.0", runtime: false},
       {:httpoison, "~> 1.3"},
-      {:jose, "~> 1.8"},
       {:poison, "~> 3.1"},
       {:timex, "~> 3.5"},
       {:afunix,  github: "tonyrog/afunix", manager: :rebar},
       {:vault_client, github: "PlugAndTrade/vault-client-elixir", tag: "0.3.0" },
+      {:x509, github: "PlugAndTrade/elixir-x509", tag: "0.3.1"}
     ]
   end
 end

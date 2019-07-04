@@ -20,4 +20,5 @@
   "tzdata": {:hex, :tzdata, "0.5.20", "304b9e98a02840fb32a43ec111ffbe517863c8566eb04a061f1c4dbb90b4d84c", [:mix], [{:hackney, "~> 1.0", [hex: :hackney, repo: "hexpm", optional: false]}], "hexpm"},
   "unicode_util_compat": {:hex, :unicode_util_compat, "0.4.1", "d869e4c68901dd9531385bb0c8c40444ebf624e60b6962d95952775cac5e90cd", [:rebar3], [], "hexpm"},
   "vault_client": {:git, "https://github.com/PlugAndTrade/vault-client-elixir.git", "15dbe22b82ab8407f359ea87ea44ca210980af21", [tag: "0.3.0"]},
+  "x509": {:git, "https://github.com/PlugAndTrade/elixir-x509.git", "195b50218a1f6166a4dcd63f9c59f17b9b5a625a", [tag: "0.3.1"]},
 }

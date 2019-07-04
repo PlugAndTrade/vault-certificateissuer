@@ -52,20 +52,18 @@ defmodule VaultCertificateIssuer.AFUnix do
   end
 
   defp serialize(%Vault.Pki.CertificateSet{private_key: key, certificate: certificate, chain: chain}) do
-    key
-      |> JOSE.JWK.from_pem()
-      |> JOSE.JWK.to_map()
-      |> (fn {_, jwk} -> jwk end).()
-      |> Map.merge(%{"x5c" => get_x5c(certificate, chain), "alg" => "RS256"})
-      |> Poison.encode!()
-      |> Kernel.<>("\n")
-      |> to_charlist()
-  end
+    private_jwk =
+      X509.parse_pem(key)
+      |> List.first()
+      |> X509.JWK.to_jwk()
+    public_jwk =
+      "#{certificate}\n#{chain}"
+      |> X509.Certificate.from_pem()
+      |> X509.JWK.to_jwk()
 
-  defp get_x5c(cert, chain) do
-    "#{cert}#{chain}"
-      |> String.replace("\n", "")
-      |> (&Regex.scan(~r/-----BEGIN CERTIFICATE-----(.+?)-----END CERTIFICATE-----/, &1)).()
-      |> Enum.map(fn [_, b64] -> b64 end)
+    Map.merge(private_jwk, public_jwk)
+    |> Poison.encode!()
+    |> Kernel.<>("\n")
+    |> to_charlist()
   end
 end
